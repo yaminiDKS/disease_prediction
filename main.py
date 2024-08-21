@@ -41,7 +41,7 @@ if uploaded_file is not None:
     model = genai.GenerativeModel(
         model_name="gemini-1.5-pro",
         generation_config=generation_config,
-        system_instruction="evaluate the disease and symptoms in plants and animals using the input image\n",
+        system_instruction="evaluate the disease and symptoms in plants and animals using the input image anlyse the type of plant or animal and provide detailed diagnosis dont ask any questions to the user\n",
     )
 
     # Initialize chat session history
