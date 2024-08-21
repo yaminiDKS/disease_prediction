@@ -14,7 +14,7 @@ def upload_to_gemini(path, mime_type=None):
     return file
 
 # Streamlit UI
-st.title("Plant & Animal Disease Evaluation using Gemini AI")
+st.title("AgriDiagnoX")
 
 uploaded_file = st.file_uploader("Upload an image", type=["png", "jpg", "jpeg", "webp"])
 
@@ -31,7 +31,7 @@ if uploaded_file is not None:
 
     # Configure the model
     generation_config = {
-        "temperature": 1,
+        "temperature": 0,
         "top_p": 0.95,
         "top_k": 64,
         "max_output_tokens": 16384,
