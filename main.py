@@ -31,7 +31,7 @@ if uploaded_file is not None:
 
     # Configure the model
     generation_config = {
-        "temperature": 0,
+        "temperature": 1,
         "top_p": 0.95,
         "top_k": 64,
         "max_output_tokens": 16384,
