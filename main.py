@@ -3,7 +3,7 @@ import streamlit as st
 import google.generativeai as genai
 
 # Configure the API key
-os.environ["GEMINI_API_KEY"] = "AIzaSyDfcuVWz7b43riDEn3LTbAlK84ry2lzx6o"
+os.environ["GEMINI_API_KEY"] = "Your_Gemini_API"
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 # Function to upload file to Gemini
