@@ -2,8 +2,8 @@ import os
 import streamlit as st
 import google.generativeai as genai
 
-# Configure the API key
-os.environ["GEMINI_API_KEY"] = "YOUR_API_KEY_HERE"  # Replace with your actual API key
+# Configure the API key (replace with your actual API key)
+os.environ["GEMINI_API_KEY"] = "AIzaSyALkJMLyvzHfFYGNj4TILbNseqS5Y_0HgA"
 genai.configure(api_key=os.environ["GEMINI_API_KEY"])
 
 # Function to upload file to Gemini
@@ -13,7 +13,6 @@ def upload_to_gemini(path, mime_type=None):
     st.write(f"Uploaded file '{file.display_name}' as: {file.uri}")
     return file
 
-# Streamlit UI
 st.title("AgriDiagnoX")
 
 # Language selection for output
@@ -31,21 +30,22 @@ if input_method == "Upload Image":
         image_data = uploaded_file.read()
         st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 elif input_method == "Capture Image":
-    # Option to choose camera (front or back)
+    # Note: st.camera_input requires HTTPS if not run locally.
+    st.info("Make sure your browser has camera permissions enabled and you are using a supported browser.")
+    # Although the code has an option for camera selection, st.camera_input does not accept a camera_id.
+    # The dropdown below is provided for future extension or reference.
     camera_choice = st.selectbox("Select Camera", ["Front Camera", "Back Camera"])
-    # Map to a camera ID; front camera is usually 0 and back camera is usually 1
-    camera_id = 0 if camera_choice == "Front Camera" else 1
-    captured_image = st.camera_input("Capture an image", camera_id=camera_id)
+    captured_image = st.camera_input("Capture an image")
     if captured_image is not None:
         image_data = captured_image.getvalue()
         st.image(captured_image, caption="Captured Image", use_column_width=True)
+    else:
+        st.warning("No image captured yet. Please try again.")
 
 if image_data is not None:
-    # Save the image data to a temporary file
     with open(temp_filename, "wb") as f:
         f.write(image_data)
-
-    # Upload the image to Gemini (using image/webp mime type; adjust as needed)
+    # Upload the image to Gemini (using image/webp as the mime type; adjust if required)
     image_file = upload_to_gemini(temp_filename, mime_type="image/webp")
 
     # Build refined system instruction including the selected language
@@ -64,30 +64,24 @@ if image_data is not None:
         "response_mime_type": "text/plain",
     }
 
+    # Use the experimental model "Gemini 2.0 Flash Thinking Experimental 01-21"
     model = genai.GenerativeModel(
-        model_name="gemini-1.5-pro",
+        model_name="gemini-2.0-flash-thinking-exp-01-21",
         generation_config=generation_config,
         system_instruction=system_instruction,
     )
 
-    # Initialize chat session history
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
 
-    # Button to analyze image
     if st.button("Analyze Image"):
         user_message = "Please analyze the uploaded image for disease symptoms and suggest a cure."
         st.session_state.chat_history.append({"role": "user", "content": user_message})
-
-        # Start the chat session by sending the uploaded image as the first message
-        chat_session = model.start_chat(
-            history=[{"role": "user", "parts": [image_file]}],
-        )
-
+        # Start the chat session by sending the uploaded image as the initial context
+        chat_session = model.start_chat(history=[{"role": "user", "parts": [image_file]}])
         response = chat_session.send_message(user_message)
         st.session_state.chat_history.append({"role": "assistant", "content": response.text})
 
-    # Display the chat history
     for message in st.session_state.chat_history:
         if message["role"] == "user":
             with st.chat_message("user"):
