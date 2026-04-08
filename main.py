@@ -4,7 +4,7 @@ from groq import Groq
 import base64
 
 # Set Groq API key
-os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY"
+os.environ["GROQ_API_KEY"] = "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"
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
 st.title("🌿 AgriDiagnoX")
