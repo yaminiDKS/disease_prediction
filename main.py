@@ -1,11 +1,9 @@
-import os
 import streamlit as st
 from groq import Groq
 import base64
 
-# Set Groq API key
-os.environ["GROQ_API_KEY"] = "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"
-client = Groq(api_key=os.environ["GROQ_API_KEY"])
+# Initialize Groq client
+client = Groq(api_key=st.secrets["GROQ_API_KEY"])
 
 st.title("🌿 AgriDiagnoX")
 
@@ -15,7 +13,7 @@ selected_language = st.selectbox(
     ["English", "Tamil"]
 )
 
-# Image input method
+# Image input
 input_method = st.radio(
     "Select Image Input Method",
     ("Upload Image", "Capture Image")
@@ -26,37 +24,34 @@ image_data = None
 # Upload image
 if input_method == "Upload Image":
     uploaded_file = st.file_uploader(
-        "Upload an image",
+        "Upload Image",
         type=["png", "jpg", "jpeg", "webp"]
     )
 
-    if uploaded_file is not None:
+    if uploaded_file:
         image_data = uploaded_file.read()
-        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
+        st.image(uploaded_file, use_column_width=True)
 
 # Camera capture
-elif input_method == "Capture Image":
-    captured_image = st.camera_input("Capture Image")
+else:
+    captured = st.camera_input("Capture Image")
+    if captured:
+        image_data = captured.getvalue()
+        st.image(captured, use_column_width=True)
 
-    if captured_image is not None:
-        image_data = captured_image.getvalue()
-        st.image(captured_image, caption="Captured Image", use_column_width=True)
+# Analyze
+if image_data:
 
-# If image available
-if image_data is not None:
-
-    # Convert to base64
     base64_image = base64.b64encode(image_data).decode("utf-8")
 
-    # System prompt
     system_prompt = f"""
 You are an expert agricultural diagnostician.
 
-Analyze the provided image carefully.
+Analyze the crop image carefully.
 
 Provide:
 1. Observations
-2. Disease Name (if any)
+2. Disease Name
 3. Cause
 4. Treatment
 5. Prevention
@@ -67,12 +62,13 @@ Do not ask follow-up questions.
 
     if st.button("Analyze Image"):
 
-        with st.spinner("Analyzing crop health..."):
+        with st.spinner("Analyzing crop..."):
 
             completion = client.chat.completions.create(
-                model="meta-llama/llama-4-maverick-17b-128e-instruct",
-                temperature=1,
+                model="meta-llama/llama-4-scout-17b-16e-instruct",
+                temperature=0.6,
                 max_completion_tokens=4096,
+                top_p=0.95,
                 messages=[
                     {
                         "role": "system",
@@ -83,7 +79,7 @@ Do not ask follow-up questions.
                         "content": [
                             {
                                 "type": "text",
-                                "text": "Analyze this agricultural image for disease"
+                                "text": "Analyze this plant image"
                             },
                             {
                                 "type": "image_url",
@@ -97,5 +93,4 @@ Do not ask follow-up questions.
             )
 
             response = completion.choices[0].message.content
-
             st.chat_message("assistant").write(response)
