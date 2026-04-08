@@ -3,11 +3,11 @@ import streamlit as st
 from groq import Groq
 import base64
 
-# Set your Groq API key
-os.environ["GROQ_API_KEY"] = "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"
+# Set Groq API key
+os.environ["GROQ_API_KEY"] = "YOUR_GROQ_API_KEY"
 client = Groq(api_key=os.environ["GROQ_API_KEY"])
 
-st.title("AgriDiagnoX")
+st.title("🌿 AgriDiagnoX")
 
 # Language selection
 selected_language = st.selectbox(
@@ -23,6 +23,7 @@ input_method = st.radio(
 
 image_data = None
 
+# Upload image
 if input_method == "Upload Image":
     uploaded_file = st.file_uploader(
         "Upload an image",
@@ -31,45 +32,45 @@ if input_method == "Upload Image":
 
     if uploaded_file is not None:
         image_data = uploaded_file.read()
-        st.image(uploaded_file, caption="Uploaded Image")
+        st.image(uploaded_file, caption="Uploaded Image", use_column_width=True)
 
+# Camera capture
 elif input_method == "Capture Image":
-    st.info("Allow camera permission")
-
     captured_image = st.camera_input("Capture Image")
 
     if captured_image is not None:
         image_data = captured_image.getvalue()
-        st.image(captured_image, caption="Captured Image")
+        st.image(captured_image, caption="Captured Image", use_column_width=True)
 
-# ---------- AI ANALYSIS ----------
+# If image available
 if image_data is not None:
 
-    # Convert image to base64
+    # Convert to base64
     base64_image = base64.b64encode(image_data).decode("utf-8")
 
+    # System prompt
     system_prompt = f"""
 You are an expert agricultural diagnostician.
 
-Analyze plant or animal disease symptoms from the image.
+Analyze the provided image carefully.
 
 Provide:
-- Observations
-- Disease name
-- Cause
-- Treatment
-- Prevention
+1. Observations
+2. Disease Name (if any)
+3. Cause
+4. Treatment
+5. Prevention
 
 Respond completely in {selected_language}.
-Do not ask follow up questions.
+Do not ask follow-up questions.
 """
 
     if st.button("Analyze Image"):
 
-        with st.spinner("Analyzing..."):
+        with st.spinner("Analyzing crop health..."):
 
             completion = client.chat.completions.create(
-                model="openai/gpt-oss-120b",
+                model="meta-llama/llama-4-maverick-17b-128e-instruct",
                 temperature=1,
                 max_completion_tokens=4096,
                 messages=[
@@ -96,4 +97,5 @@ Do not ask follow up questions.
             )
 
             response = completion.choices[0].message.content
+
             st.chat_message("assistant").write(response)
